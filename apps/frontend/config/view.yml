@@ -12,9 +12,12 @@ default:
     language:     utf-8
     robots:       index, follow
 
-  stylesheets:    [bootstrap.css, bootstrap-responsive.css, style.css]
+  stylesheets:    [bootstrap.css, bootstrap-responsive.css, walnut.css]
 
   javascripts:    [jquery-1.7.1.min.js, jquery.masonry.min.js, jquery.infinitescroll.min.js]
 
   has_layout:     true
   layout:         layout
+homeSuccess:
+  stylesheets:    [bootstrap.css, walnut.css]
+  javascripts:    [jquery-1.7.1.min.js]

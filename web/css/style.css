@@ -4,10 +4,6 @@ html {
   overflow-y: scroll;
 }
 
-body {
-  background-image: url(/image/bg-grid.png);
-}
-
 /**** #site-nav ****/
 
 #site-nav {

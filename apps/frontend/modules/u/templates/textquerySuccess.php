@@ -1,43 +1,72 @@
 <?php include_partial ( 'header' )?>
 <?php if($results):?>
-<div class="container">
-	<div class="row">
-		<div class="span12">
-		<?php
-	$total = ( int ) $results->response->numFound;
-	$start = min ( 1, $total );
-	$end = min ( $limit, $total );
-	?>
-		Results <?php echo $start; ?> - <?php echo $end;?> of <?php echo $total; ?>:
-			<div id="container"
-				class="transitions-enabled infinite-scroll clearfix">
-					<?php foreach ($results->response->docs as $product ):?>
-										<div class="box photo col3">
-					<p>
-						<span class="label label-important" style="font-size: 14px;">￥<?php echo htmlspecialchars($product->price, ENT_NOQUOTES, 'utf-8')?>
-										</span>
-					</p>
-					<a
-						href="<?php echo htmlspecialchars($product->url, ENT_NOQUOTES, 'utf-8')?>"><img
-						src="/i/<?php echo $product->imagehash . '.jpg'?>" /></a>
-					<div class="caption">
-						<h5><?php echo htmlspecialchars($product->name, ENT_NOQUOTES, 'utf-8')?></h5>
-						<br />
-						<p>
-							<a
-								href="<?php echo htmlspecialchars($product->url, ENT_NOQUOTES, 'utf-8')?>"
-								class="btn btn-info">购 买</a> <span class="label label-info">amz</span>
-						</p>
-					</div>
-				</div>
-					<?php endforeach;?>
-				</div>
+<div id="main-content" class="wrapper">
+	<div class="alert alert-info">共找到结果 <?php echo $start; ?> - <?php echo $end;?>：</div>
+	<div class="columns single sidebar">
+		<div class="column dark last">
+			<h3>Showcase</h3>
+			<ul id="trending-tags">
+				<li><a class="hl" href="http://shoply.com/marketplace/accessories/">Accessories</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/art/">Art</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/clothing/">Clothing</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/crafts/">Crafts</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/edibles/">Edibles</a></li>
+
+				<li><a class="hl"
+					href="http://shoply.com/marketplace/entertainment/">Entertainment</a></li>
+
+				<li><a class="hl"
+					href="http://shoply.com/marketplace/health_beauty/">Health &amp;
+						Beauty</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/home/">Home</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/jewelry/">Jewelry</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/outdoor/">Outdoor</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/pets/">Pets</a></li>
+
+				<li><a class="hl"
+					href="http://shoply.com/marketplace/everything_else/">Everything
+						Else</a></li>
+			</ul>
 		</div>
 	</div>
-	<hr>
-	<footer>
-		<p>&copy; Company 2012</p>
-	</footer>
+	<div id="right-content">
+
+		<ul id="product-list">
+					<?php
+	$i = 0;
+	foreach ( $results->response->docs as $product ) :
+		?>
+					<li <?php if($i%4==3) echo 'class="last"'; $i++;?>><a
+				href="<?php echo $product->url?>"
+				title="<?php echo $product->name?>"> <img
+					src="/i/<?php echo $product->imagehash . '.jpg'?>" width="160"
+					height="160"></a>
+				<p>
+					<a href="<?php echo $product->url?>"><?php echo $product->name?></a>
+				</p>
+				<p class="price">￥<?php echo $product->price?></p>
+				<p class="shop">
+					<span class="label label-info">amz</span>
+				</p></li>
+					<?php endforeach;?>
+		</ul>
+		<div class="pagination">
+			<ul>
+			<?php foreach($pageArray as $page):?>
+			<li><a href="<?php echo '/u/textquery?q=' . $query . '&page=' . $page ?>"><?php echo $page?></a></li>
+			<?php endforeach;?>
+			</ul>
+		</div>
+	</div>
 </div>
 <?php endif;?>
+<?php include_partial ( 'footer' )?>
 

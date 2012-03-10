@@ -19,18 +19,62 @@ class uActions extends sfActions {
 	 * @param $request sfRequest
 	 *       	 A request object
 	 */
+	public function executeHome(sfWebRequest $request) {
+		try {
+			$socket = new TSocket ( 'localhost', '9090' );
+			$socket->setRecvTimeout ( 10000 );
+			$transport = new TBufferedTransport ( $socket );
+			$protocol = new TBinaryProtocol ( $transport );
+			$client = new HbaseClient ( $protocol );
+			$transport->open ();
+			if (! $request->hasParameter ( 'next' )) {
+				$scanner = $client->scannerOpen ( 'image', '', array ('d:ii_0' ) );
+			} else {
+				$scanner = $client->scannerOpen ( 'image', $this->getUser ()->getAttribute ( 'startRow' ), array ('d:ii_0' ) );
+			}
+			$i = 0;
+			$this->productArray = array ();
+			while ( true ) {
+				$this->productArray [$i] = array ();
+				$row = $client->scannerGet ( $scanner );
+				$this->productArray [$i] ['image'] = $row [0]->row . '.jpg';
+				$itemRowKey = $row [0]->columns ['d:ii_0']->value;
+				$this->productArray [$i] ['item'] = $this->getItemInfo ( $itemRowKey );
+				if ($i ++ >= 30) {
+					break;
+				}
+			}
+			$row = $client->scannerGet ( $scanner );
+			$this->getUser ()->setAttribute ( 'startRow', $row [0]->row );
+			$client->scannerClose ( $scanner );
+			$transport->close ();
+		} catch ( TException $e ) {
+			echo "ThriftException: " . $e->getMessage () . "\r\n";
+		}
+	}
 	
 	public function executeTextquery(sfWebRequest $request) {
-		$this->limit = 10;
-		$query = $request->getParameter ( 'q', false );
+		$this->limit = 16;
+		$this->page = $request->getParameter ( 'page', 0 );
+		$this->query = $request->getParameter ( 'q', false );
 		$this->results = false;
-		if ($query) {
+		if ($this->query) {
 			$solr = new Apache_Solr_Service ( 'localhost', 8080, '/solr/' );
 			if (get_magic_quotes_gpc () == 1) {
-				$query = stripslashes ( $query );
+				$this->query = stripslashes ( $this->query );
 			}
 			try {
-				$this->results = $solr->search ( $query, 0, $this->limit );
+				$this->results = $solr->search ( $this->query, $this->page * $this->limit, $this->limit );
+				$this->total = ( int ) $this->results->response->numFound;
+				$this->start = min ( $this->page * $this->limit, $this->total );
+				$this->end = min ( ($this->page + 1) * $this->limit, $this->total );
+				$this->pageArray = array ();
+				for($i = - 3; $i <= 3; ++ $i) {
+					$p = $this->page + $i;
+					if ($p >= 0 && $p * $this->limit < $this->total) {
+						$this->pageArray [] = $p;
+					}
+				}
 			} catch ( Exception $e ) {
 			}
 		}
@@ -130,7 +174,9 @@ class uActions extends sfActions {
 		}
 		$filename = md5_file ( $file ['tmp_name'] );
 		$filepath = sfConfig::get ( 'sf_upload_dir' ) . '/' . $filename . '.jpg';
-		system ( 'convert ' . $file ['tmp_name'] . ' -resize 320x320 ' . $filepath );
+		move_uploaded_file ( $file ['tmp_name'], $filepath );
+		// system ( 'convert ' . $file ['tmp_name'] . ' -resize 320x320 ' .
+		// $filepath );
 		return $filepath;
 	}
 	

@@ -1,8 +1,5 @@
 <?php include_partial ( 'header' )?>
-
-<div class="container">
-	<!-- Example row of columns -->
-
+<div id="main-content" class="wrapper">
 	<div class="alert alert-block">
 		<p>
 			<strong>上传图片： 赶快去照一张照片吧</strong>
@@ -15,52 +12,72 @@
 				<input class="input-file" id="fileInput" name="fileInput"
 					type="file" />
 			</div>
-			<div class="row">
-				<div class="span1">
-					<input type="submit" class="btn btn-info" value="上 传">
-				</div>
-
-				<div class="span1">
-					<button type="reset" class="btn btn-danger">取 消</button>
-				</div>
-			</div>
+			<input type="submit" class="btn btn-info" value="上 传">
+			<button type="reset" class="btn btn-danger">取 消</button>
 		</form>
 	</div>
-	<div class="row">
-		<div class="span12">
-				<?php if (isset ( $time )) :?>
-				<div class="alert alert-info">
-					Find results in <?php echo $time?> seconds.
-				</div>
-				<?php endif;?>
+	<?php if (isset ( $time )) :?>
+	<div class="alert alert-info">Find results in <?php echo $time?> seconds.</div>
+	<?php endif;?>	
+		<div class="columns single sidebar">
+
+		<div class="column dark last">
+			<h3>Showcase</h3>
+			<ul id="trending-tags">
+
+				<li><a class="hl" href="http://shoply.com/marketplace/accessories/">Accessories</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/art/">Art</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/clothing/">Clothing</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/crafts/">Crafts</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/edibles/">Edibles</a></li>
+
+				<li><a class="hl"
+					href="http://shoply.com/marketplace/entertainment/">Entertainment</a></li>
+
+				<li><a class="hl"
+					href="http://shoply.com/marketplace/health_beauty/">Health &amp;
+						Beauty</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/home/">Home</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/jewelry/">Jewelry</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/outdoor/">Outdoor</a></li>
+
+				<li><a class="hl" href="http://shoply.com/marketplace/pets/">Pets</a></li>
+
+				<li><a class="hl"
+					href="http://shoply.com/marketplace/everything_else/">Everything
+						Else</a></li>
+
+			</ul>
 		</div>
 	</div>
-	<div class="row">
-		<div class="span12">
-			<div id="container"
-				class="transitions-enabled infinite-scroll clearfix">
-					<?php foreach ($productArray as $product):?>
-					<div class="box photo col3">
-					<p>
-						<span class="label label-important" style="font-size: 14px;">￥<?php echo $product['item']['price']?>
-										</span>
-					</p>
-					<a href="<?php echo $product['item']['url']?>"><img
-						src="/i/<?php echo $product['image']?>" /></a>
-					<div class="caption">
-						<h5><?php echo $product['item']['name']?></h5>
-						<br />
-						<p>
-							<a href="<?php echo $product['item']['url']?>"
-								class="btn btn-info">购 买</a> <span class="label label-info"><?php echo $product['item']['source']?></span>
-						</p>
-					</div>
-				</div>
+	<div id="right-content">
+
+		<ul id="product-list">
+		<?php
+		$i = 0;
+		foreach ( $productArray as $product ) :
+			?>
+				
+					<li <?php if($i%4==3) echo 'class="last"'; $i++;?>><a
+				href="<?php echo $product['item']['url']?>"
+				title="<?php echo $product['item']['name']?>"> <img
+					src="/i/<?php echo $product['image']?>" width="160" height="160"></a>
+				<p>
+					<a href="<?php echo $product['item']['url']?>"><?php echo $product['item']['name']?></a>
+				</p>
+				<p class="price">￥<?php echo $product['item']['price']?></p>
+				<p class="shop">
+					<span class="label label-info"><?php echo $product['item']['source']?></span>
+				</p></li>
 					<?php endforeach;?>
-				</div>
-		</div>
+		</ul>
 	</div>
-	<footer>
-		<p>&copy; Company 2012</p>
-	</footer>
 </div>
+<?php include_partial ( 'footer' )?>
