@@ -11,60 +11,48 @@
 	<div class="columns single sidebar">
 
 		<div class="column dark last">
-			<h3>Showcase</h3>
+			<h3>商品分类</h3>
 			<ul id="trending-tags">
-
-				<li><a class="hl" href="http://shoply.com/marketplace/accessories/">Accessories</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/art/">Art</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/clothing/">Clothing</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/crafts/">Crafts</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/edibles/">Edibles</a></li>
-
-				<li><a class="hl"
-					href="http://shoply.com/marketplace/entertainment/">Entertainment</a></li>
-
-				<li><a class="hl"
-					href="http://shoply.com/marketplace/health_beauty/">Health &amp;
-						Beauty</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/home/">Home</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/jewelry/">Jewelry</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/outdoor/">Outdoor</a></li>
-
-				<li><a class="hl" href="http://shoply.com/marketplace/pets/">Pets</a></li>
-
-				<li><a class="hl"
-					href="http://shoply.com/marketplace/everything_else/">Everything
-						Else</a></li>
-
+			<?php foreach($menuArray as $menu=>$count):?>
+			<li><a class="hl" href="/u/textquery?q=*&prefix=<?php echo $prefixMenuArray[$menu]?>"><?php echo $menu . '(' . $count . ')'?></a></li>
+			<?php endforeach;?>
 			</ul>
 		</div>
 	</div>
 	<div id="right-content">
 		<ul id="product-list">
-					<?php
-					$i = 0;
-					foreach ( $productArray as $product ) :
-						?>
-					<li <?php if($i%4==3) echo 'class="last"'; $i++;?>><a
-				href="<?php echo $product['item']['url']?>"
-				title="<?php echo $product['item']['name']?>"> <img
-					src="/i/<?php echo $product['image']?>" width="160" height="160"></a>
-				<p>
-					<a href="<?php echo $product['item']['url']?>"><?php echo $product['item']['name']?></a>
+	<?php
+	$i = 0;
+	foreach ( $results->response->docs as $product ) :
+		?>
+					<li <?php if($i%4==3) echo 'class="last"'; $i++;?>>
+				<div class="show-image">
+					<a href="<?php echo $product->url?>"
+						title="<?php echo $product->name?>"> <img
+						src="/i/<?php echo $product->imagehash . '_160.jpg'?>" width="160"
+						height="160"></a>
+					<button class="btn btn-danger find-similar"
+						style="position: absolute; top: 2px; right: 2px;">
+						<i class="icon-search icon-white"></i>相似
+					</button>
+				</div>
+				<p class="title"><?php echo $product->name?>
 				</p>
-				<p class="price">￥<?php echo $product['item']['price']?></p>
-				<p class="shop">
-					<span class="label label-info"><?php echo $product['item']['source']?></span>
-				</p></li>
+				<p class="price">
+					<strong>￥<?php echo $product->price?></strong>
+				</p>
+				<p class="shop"><?php echo $product->merchant?>
+				</p>
+			</li>
 					<?php endforeach;?>
 		</ul>
+		<div class="pagination">
+			<ul>
+			<?php foreach($pageArray as $page):?>
+			<li><a href="<?php echo '/u/textquery?q=*&page=' . $page ?>"><?php echo $page?></a></li>
+			<?php endforeach;?>
+			</ul>
+		</div>
 		<hr>
 		<h3>Trending Shops</h3>
 		<ul class="sellers_homepage">
