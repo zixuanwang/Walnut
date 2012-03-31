@@ -12,17 +12,16 @@ require_once $GLOBALS ['THRIFT_ROOT'] . 'transport/TFramedTransport.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'packages/ImageDaemon/ImageDaemon.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'packages/Hbase/Hbase.php';
 require_once sfConfig::get ( 'sf_lib_dir' ) . '/SolrPhpClient/Apache/Solr/Service.php';
+require_once sfConfig::get ( 'sf_lib_dir' ) . '/utility/HbaseAdapter.php';
 
 class uActions extends sfActions {
-	/**
-	 * Executes index action
-	 *
-	 * @param $request sfRequest
-	 *       	 A request object
-	 */
+	const SOLR_SERVER_NAME = 'localhost';
+	const SOLR_SERVER_PORT = '8080';
+	const SOLR_ROOT_DIR = '/solr/';
+	
 	public function executeHome(sfWebRequest $request) {
 		$this->limit = 16;
-		$solr = new Apache_Solr_Service ( 'localhost', 8080, '/solr/' );
+		$solr = new Apache_Solr_Service ( self::SOLR_SERVER_NAME, self::SOLR_SERVER_PORT, self::SOLR_ROOT_DIR );
 		try {
 			$additionalParameters = array ('facet' => 'true', 'facet.prefix' => 0, 'facet.field' => array ('category' ) );
 			$this->results = $solr->search ( '*', $this->page * $this->limit, $this->limit, $additionalParameters );
@@ -43,6 +42,14 @@ class uActions extends sfActions {
 		}
 	}
 	
+	public function executeView(sfWebRequest $request) {
+	
+	}
+	
+	public function executeAbout(sfWebRequest $request) {
+	
+	}
+	
 	public function buildNavigation($queryResult) {
 		$this->menuArray = array ();
 		$this->prefixMenuArray = array ();
@@ -54,6 +61,26 @@ class uActions extends sfActions {
 				$this->prefixMenuArray [$menu [$menuSize - 1]] = addslashes ( $key );
 			}
 		}
+		// build back menu from prefix
+		$prefixArray = explode ( '|', $this->prefix );
+		$prefixArraySize = count ( $prefixArray );
+		if ($prefixArraySize > 1) {
+			$this->parentMenu = $prefixArray [$prefixArraySize - 1];
+			$this->parentMenuUrl = $this->buildParentPrefix ( $this->prefix );
+		}
+	}
+	
+	public function buildParentPrefix($prefix) {
+		$newPrefix = '';
+		$token = explode ( '|', $prefix );
+		$tokenSize = count ( $token );
+		if ($tokenSize > 2) {
+			$newPrefix = $token [0] - 1;
+			for($i = 1; $i < $tokenSize - 1; ++ $i) {
+				$newPrefix .= '|' . $token [$i];
+			}
+		}
+		return $newPrefix;
 	}
 	
 	public function buildNextPrefix($prefix) {
@@ -69,16 +96,50 @@ class uActions extends sfActions {
 		return $newPrefix;
 	}
 	
+	public function packLong($v){
+		return pack ( 'll', $v & 0xFFFFFFFF, $v >> 32 );
+	}
+	
+	public function executeImagequery(sfWebRequest $request) {
+		$imageKey = $request->getParameter ( 'imagekey', - 1 );
+		$featureType = $request->getParameter ( 't', null );
+		if ($featureType == 'color') {
+			// get color neighbors
+			$hbaseAdapter = new HbaseAdapter ();
+			$neighborIdArray = $hbaseAdapter->loadCell ( 'image_index', $this->packLong($imageKey), 'd:color_r0' );
+			print_r ( $neighborIdArray );
+			// echo $imageKey;
+			// echo $strNeighborIdArray[0];
+			// echo count($strNeighborIdArray);
+			// print_r($strNeighborIdArray);
+			// $neighborIdArray = unpack ( 'l*', $strNeighborIdArray );
+			// print_r($neighborIdArray);
+		}
+	}
+	
 	public function executeTextquery(sfWebRequest $request) {
 		$this->limit = 16;
 		$this->page = $request->getParameter ( 'page', 0 );
 		$this->query = $request->getParameter ( 'q', '*' );
-		$this->prefix = $request->getParameter ( 'prefix', '0' );
+		$this->prefix = $request->getParameter ( 'prefix' );
 		$this->results = false;
-		$solr = new Apache_Solr_Service ( 'localhost', 8080, '/solr/' );
+		$solr = new Apache_Solr_Service ( self::SOLR_SERVER_NAME, self::SOLR_SERVER_PORT, self::SOLR_ROOT_DIR );
 		try {
-			$additionalParameters = array ('fq' => 'category:' . $this->prefix, 'facet' => 'true', 'facet.prefix' => stripslashes ( $this->buildNextPrefix ( $this->prefix ) ), 'facet.field' => array ('category' ) );
-			$this->results = $solr->search ( $this->query, $this->page * $this->limit, $this->limit, $additionalParameters );
+			$categoryParameters = array ();
+			$categoryParameters ['facet'] = 'true';
+			$categoryParameters ['facet.field'] = array ('category' );
+			$categoryParameters ['stats'] = 'true';
+			$categoryParameters ['stats.field'] = 'price';
+			
+			if ($request->hasParameter ( 'prefix' )) {
+				// has category constraint
+				$categoryParameters ['fq'] = 'category:' . $this->prefix;
+				$categoryParameters ['facet.prefix'] = stripslashes ( $this->buildNextPrefix ( $this->prefix ) );
+			} else {
+				$categoryParameters ['facet.prefix'] = '0|';
+			}
+			$this->results = $solr->search ( $this->query, $this->page * $this->limit, $this->limit, $categoryParameters );
+			// print_r($this->results);
 			// Generate the navigation menu
 			$this->buildNavigation ( $this->results );
 			$this->total = ( int ) $this->results->response->numFound;
