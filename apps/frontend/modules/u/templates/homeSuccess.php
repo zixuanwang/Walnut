@@ -1,7 +1,6 @@
 <?php include_partial ( 'header' )?>
 <div id="main-content" class="wrapper">
 	<?php include_partial ( 'search' )?>
-	<hr />
 	<div class="columns single sidebar">
 		<div class="column dark last">
 			<h3>商品分类</h3>

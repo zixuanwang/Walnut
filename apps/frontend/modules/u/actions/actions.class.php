@@ -12,7 +12,7 @@ require_once $GLOBALS ['THRIFT_ROOT'] . 'transport/TFramedTransport.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'packages/ImageDaemon/ImageDaemon.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'packages/Hbase/Hbase.php';
 require_once sfConfig::get ( 'sf_lib_dir' ) . '/SolrPhpClient/Apache/Solr/Service.php';
-require_once sfConfig::get ( 'sf_lib_dir' ) . '/utility/HbaseAdapter.php';
+require_once sfConfig::get ( 'sf_lib_dir' ) . '/walnut/Product.php';
 
 class uActions extends sfActions {
 	const SOLR_SERVER_NAME = 'localhost';
@@ -96,25 +96,56 @@ class uActions extends sfActions {
 		return $newPrefix;
 	}
 	
-	public function packLong($v){
+	public function packLong($v) {
 		return pack ( 'll', $v & 0xFFFFFFFF, $v >> 32 );
 	}
 	
 	public function executeImagequery(sfWebRequest $request) {
-		$imageKey = $request->getParameter ( 'imagekey', - 1 );
-		$featureType = $request->getParameter ( 't', null );
-		if ($featureType == 'color') {
+		$this->page = $request->getParameter ( 'page', 0 );
+		$this->imageKey = $request->getParameter ( 'imagekey', - 1 );
+		$this->featureType = $request->getParameter ( 't', null );
+		$hbaseAdapter = new HbaseAdapter ();
+		if ($this->featureType == 'color') {
 			// get color neighbors
-			$hbaseAdapter = new HbaseAdapter ();
-			$neighborIdArray = $hbaseAdapter->loadCell ( 'image_index', $this->packLong($imageKey), 'd:color_r0' );
-			print_r ( $neighborIdArray );
-			// echo $imageKey;
-			// echo $strNeighborIdArray[0];
-			// echo count($strNeighborIdArray);
-			// print_r($strNeighborIdArray);
-			// $neighborIdArray = unpack ( 'l*', $strNeighborIdArray );
-			// print_r($neighborIdArray);
+			$neighborIdArray = explode ( '|', $hbaseAdapter->loadCell ( 'image_index', $this->packLong ( $this->imageKey ), 'd:color' . $this->page ) );
 		}
+		if ($this->featureType == 'shape') {
+			// get shape neighbors
+			$neighborIdArray = explode ( '|', $hbaseAdapter->loadCell ( 'image_index', $this->packLong ( $this->imageKey ), 'd:shape' . $this->page ) );
+		}
+		if ($this->featureType == 'pattern') {
+			// get surf neighbors
+			$neighborIdArray = explode ( '|', $hbaseAdapter->loadCell ( 'image_index', $this->packLong ( $this->imageKey ), 'd:surf' . $this->page ) );
+		}
+		$this->productArray = array ();
+		foreach ( $neighborIdArray as $neighborId ) {
+			$products = $this->getProductInfo ( $neighborId );
+			foreach ( $products as $product ) {
+				$this->productArray [] = $product;
+			}
+		}
+		
+		$this->pageArray = array ();
+		for($i = - 3; $i <= 3; ++ $i) {
+			$p = $this->page + $i;
+			if ($p >= 0) {
+				$this->pageArray [] = $p;
+			}
+		}
+	}
+	
+	public function getProductInfo($imageKey) {
+		$productArray = array ();
+		try {
+			$solr = new Apache_Solr_Service ( self::SOLR_SERVER_NAME, self::SOLR_SERVER_PORT, self::SOLR_ROOT_DIR );
+			$result = $solr->search ( 'imagekey:' . $imageKey, 0, 1 );
+			foreach ( $result->response->docs as $product ) {
+				$productArray [] = $product;
+			}
+		
+		} catch ( Exception $e ) {
+		}
+		return $productArray;
 	}
 	
 	public function executeTextquery(sfWebRequest $request) {

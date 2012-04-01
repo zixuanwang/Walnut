@@ -5,8 +5,8 @@
 		height="160"></a>
 	<div class="btn-group find-similar" style="position: absolute; top: 2px; right: 12px;">
 		<button class="btn"><a href="<?php echo '/u/imagequery?t=color&imagekey=' . $product->imagekey ?>">颜色</a></button>
-		<button class="btn"><i class="icon-star"></i>形状</button>
-		<button class="btn">图案</button>
+		<button class="btn"><i class="icon-star"></i><a href="<?php echo '/u/imagequery?t=shape&imagekey=' . $product->imagekey ?>">形状</a></button>
+		<button class="btn"><a href="<?php echo '/u/imagequery?t=pattern&imagekey=' . $product->imagekey ?>">图案</a></button>
 	</div>
 </div>
 <p class="title"><?php echo $product->name?>

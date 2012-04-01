@@ -1,6 +1,5 @@
 <?php include_partial ( 'header' )?>
 <?php if($results):?>
-<?php print_r($results->response->docs)?>
 <div id="main-content" class="wrapper">
 	<?php include_partial ( 'search' )?>
 	<div class="alert alert-info">共找到<?php echo $total?>个结果, 当前显示 <?php echo $start+1; ?> - <?php echo $end;?>：</div>
