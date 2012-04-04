@@ -9,22 +9,25 @@
 </ul>
 <div id="myTabContent" class="tab-content">
 	<div class="tab-pane fade in active" id="textsearch">
-		<form class="well form-search"
+		<form class="form-search"
 			action="<?php echo url_for('u/textquery')?>" method="get">
 			<input type="text" class="input-large search-query search-box"
 				name="q"> <input type="image" src="/image/search button.png">
 		</form>
 	</div>
 	<div class="tab-pane fade" id="linksearch">
-		<form class="well form-search">
-			<input type="text" class="input-large search-query search-box"> <input
-				type="image" src="/image/search button.png">
+		<form class="form-search" method="post"
+			action="<?php echo url_for('u/selectimage')?>">
+			<input type="text" class="input-large search-query search-box"
+				name="inputlink"> <input type="image" src="/image/search button.png"
+				alt="Submit" />
 		</form>
 	</div>
 	<div class="tab-pane fade" id="uploadsearch">
-		<form class="well form-search">
-			<input type="text" class="input-large search-query search-box"> <input
-				type="image" src="/image/search button.png">
+		<form class="form-search" encType="multipart/form-data"
+			method="post" action="<?php echo url_for('u/selectimage')?>">
+			<input class="input-file" name="inputfile" type="file">
+			<input type="image" src="/image/search button.png" alt="Submit" />
 		</form>
 	</div>
 </div>

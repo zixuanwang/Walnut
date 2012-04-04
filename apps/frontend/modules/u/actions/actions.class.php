@@ -50,6 +50,61 @@ class uActions extends sfActions {
 	
 	}
 	
+	public function executeSelectimage(sfWebRequest $request) {
+		if ($request->isMethod ( 'post' )) {
+			if ($request->hasParameter ( 'inputlink' )) {
+				$linkurl = $request->getParameter ( 'inputlink' );
+				$pathParts = pathinfo ( $linkurl );
+				if ($pathParts ['extension'] == 'jpg') {
+					$tmpPath = '/tmp/' . rand() . time() . '.jpg';
+					$this->downloadFile ( $linkurl, $tmpPath );
+					$filename = md5_file ( $tmpPath );
+					$filepath = sfConfig::get ( 'sf_upload_dir' ) . '/' . $filename . '.jpg';
+					rename ( $tmpPath, $filepath );
+				}
+			} else {
+				$file = $request->getFiles ( 'inputfile' );
+				$filepath = $this->saveUploadedImage ( $file );
+			}
+			$this->imagePath=basename($filepath);
+		}
+	}
+	
+	public function saveImage($filePath) {
+		$filename = md5_file ( $filePath );
+		$newFilePath = sfConfig::get ( 'sf_upload_dir' ) . '/' . $filename . '.jpg';
+		move_uploaded_file ( $filePath, $newFilePath );
+		return $newFilePath;
+	}
+	
+	public function saveUploadedImage($file) {
+		// This function downsample and rename the uploaded image
+		// The image path is returned.
+		$type = $file ['type'];
+		if (strstr ( $type, '/', true ) != 'image') {
+			return null;
+		}
+		return $this->saveImage ( $file ['tmp_name'] );
+	}
+	
+	public function downloadFile($url, $path) {
+		$newfname = $path;
+		$file = fopen ( $url, "rb" );
+		if ($file) {
+			$newf = fopen ( $newfname, "wb" );
+			if ($newf)
+				while ( ! feof ( $file ) ) {
+					fwrite ( $newf, fread ( $file, 1024 * 8 ), 1024 * 8 );
+				}
+		}
+		if ($file) {
+			fclose ( $file );
+		}
+		if ($newf) {
+			fclose ( $newf );
+		}
+	}
+	
 	public function buildNavigation($queryResult) {
 		$this->menuArray = array ();
 		$this->prefixMenuArray = array ();
@@ -212,17 +267,6 @@ class uActions extends sfActions {
 		$this->resultArray = $this->query ( $imagePath );
 	}
 	
-	public function saveImage($request) {
-		$base = $request->getParameter ( 'image' );
-		$binary = base64_decode ( $base );
-		header ( 'Content-Type: bitmap; charset=utf-8' );
-		$filename = sfConfig::get ( 'sf_upload_dir' ) . '/' . uniqueFilename ( '.jpg' );
-		$file = fopen ( $filename, 'wb' );
-		fwrite ( $file, $binary );
-		fclose ( $file );
-		return $filename;
-	}
-	
 	public function query($imagePath) {
 		try {
 			$socket = new TSocket ( 'node2', '9992' );
@@ -236,21 +280,6 @@ class uActions extends sfActions {
 			echo "ThriftException: " . $tx->getMessage () . "\r\n";
 		}
 		return $hashArray;
-	}
-	
-	public function saveUploadedImage($file) {
-		// This function downsample and rename the uploaded image
-		// The image path is returned.
-		$type = $file ['type'];
-		if (strstr ( $type, '/', true ) != 'image') {
-			return null;
-		}
-		$filename = md5_file ( $file ['tmp_name'] );
-		$filepath = sfConfig::get ( 'sf_upload_dir' ) . '/' . $filename . '.jpg';
-		move_uploaded_file ( $file ['tmp_name'], $filepath );
-		// system ( 'convert ' . $file ['tmp_name'] . ' -resize 320x320 ' .
-		// $filepath );
-		return $filepath;
 	}
 	
 	public function getItemInfo($itemRowKey) {

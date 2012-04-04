@@ -5,7 +5,7 @@
 	<div class="alert alert-info">共找到<?php echo $total?>个结果, 当前显示 <?php echo $start+1; ?> - <?php echo $end;?>：</div>
 	<div class="columns single sidebar">
 			<div class="column dark last">
-			<h3>商品分类</h3>
+			<h3><a href="<?php echo url_for('@homepage')?>">商品分类</a></h3>
 			<ul id="trending-tags">
 			<?php if($query == '*' && !empty($parentMenuUrl)):?>
 			<li>

@@ -33,3 +33,10 @@ $(function() {
 		$("#auploadsearch").tab('show');
 	});
 });
+
+
+
+
+// $('#alinkbutton').click(function(){
+// $('#myModal').modal('show');
+// });
