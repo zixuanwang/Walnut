@@ -34,9 +34,6 @@ $(function() {
 	});
 });
 
-
-
-
 // $('#alinkbutton').click(function(){
 // $('#myModal').modal('show');
 // });

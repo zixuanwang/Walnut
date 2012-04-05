@@ -12,22 +12,21 @@
 		<form class="form-search"
 			action="<?php echo url_for('u/textquery')?>" method="get">
 			<input type="text" class="input-large search-query search-box"
-				name="q"> <input type="image" src="/image/search button.png">
+				name="q"> <button type="submit" class="btn">查 询</button>
 		</form>
 	</div>
 	<div class="tab-pane fade" id="linksearch">
 		<form class="form-search" method="post"
 			action="<?php echo url_for('u/selectimage')?>">
 			<input type="text" class="input-large search-query search-box"
-				name="inputlink"> <input type="image" src="/image/search button.png"
-				alt="Submit" />
+				name="inputlink"> <button type="submit" class="btn">查 询</button>
 		</form>
 	</div>
 	<div class="tab-pane fade" id="uploadsearch">
 		<form class="form-search" encType="multipart/form-data"
 			method="post" action="<?php echo url_for('u/selectimage')?>">
 			<input class="input-file" name="inputfile" type="file">
-			<input type="image" src="/image/search button.png" alt="Submit" />
+			<button type="submit" class="btn">查 询</button>
 		</form>
 	</div>
 </div>

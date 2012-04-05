@@ -50,13 +50,17 @@ class uActions extends sfActions {
 	
 	}
 	
+	public function executeJoin(sfWebRequest $request) {
+	
+	}
+	
 	public function executeSelectimage(sfWebRequest $request) {
 		if ($request->isMethod ( 'post' )) {
 			if ($request->hasParameter ( 'inputlink' )) {
 				$linkurl = $request->getParameter ( 'inputlink' );
 				$pathParts = pathinfo ( $linkurl );
 				if ($pathParts ['extension'] == 'jpg') {
-					$tmpPath = '/tmp/' . rand() . time() . '.jpg';
+					$tmpPath = '/tmp/' . rand () . time () . '.jpg';
 					$this->downloadFile ( $linkurl, $tmpPath );
 					$filename = md5_file ( $tmpPath );
 					$filepath = sfConfig::get ( 'sf_upload_dir' ) . '/' . $filename . '.jpg';
@@ -66,7 +70,7 @@ class uActions extends sfActions {
 				$file = $request->getFiles ( 'inputfile' );
 				$filepath = $this->saveUploadedImage ( $file );
 			}
-			$this->imagePath=basename($filepath);
+			$this->imagePath = basename ( $filepath );
 		}
 	}
 	

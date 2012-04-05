@@ -39,8 +39,14 @@
 		</ul>
 		<div class="pagination">
 			<ul>
-			<?php foreach($pageArray as $page):?>
-			<li><a href="<?php echo '/u/textquery?page=' . $page ?>"><?php echo $page?></a></li>
+			<?php foreach($pageArray as $p):?>
+			<?php if($p==$page){
+				$flag=' class="active"';
+			}else{
+				$flag='';
+			}
+			?>
+			<li<?php echo $flag?>><a href="<?php echo '/u/textquery?page=' . $p ?>"><?php echo $p + 1?></a></li>
 			<?php endforeach;?>
 			</ul>
 		</div>

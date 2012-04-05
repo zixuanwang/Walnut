@@ -13,7 +13,7 @@
 			<ul>
 				<li><a href="<?php echo url_for('u/about')?>">关于核桃</a></li>
 				<li><a href="">核桃博客</a></li>
-				<li><a href="">招贤纳士</a></li>
+				<li><a href="<?php echo url_for('u/join')?>">招贤纳士</a></li>
 			</ul>
 		</li>
 		<li>
@@ -21,7 +21,6 @@
 			<ul>
 				<li><a href="mailto:zixuanwang@gmail.com">zixuanwang@gmail.com</a></li>
 				<li>USA: (+1) 631 662 0583</li>
-				<li>China: (+86) 13264486289</li>
 			</ul>
 		</li>
 	</ul>
