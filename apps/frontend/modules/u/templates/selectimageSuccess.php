@@ -4,26 +4,81 @@
 		<h3 id="testh3">请选择图片类别</h3>
 	</div>
 	<div class="modal-body">
-		<img src="<?php echo '/uploads/' . $imagePath?>">
+		<img src="<?php echo '/uploads/' . $imagePath?>" width="200"
+			height="200">
 		<hr>
-		<div class="control-group">
-			<select id="myselect1"></select> <select id="subcategory"></select>
+		<div id="treeContainer" class="control-group">
+			<select id="sub_0" class="catSel"></select>
 		</div>
+
 		<script type="text/javascript">
 		var categoryArray=new Array();
 		$.getJSON('/js/category.json', function(data) {
 			  $.each(data, function(key, val) {
-				  $('#myselect1').append($('<option>').text(val.name).attr('value', key));
+				  $('#sub_0').append($('<option>').text(val.name).attr('value', key));
 				  categoryArray[key]=val;
 			  });
 			});
-		$('#myselect1').change(function() {
-			$('#subcategory').find('option').remove();
-			$.each(categoryArray[$(this).val()].children, function(key, val){
-				//alert(val.name);
-				$('#subcategory').append($('<option>').text(val.name).attr('value', key));
-				});
-			});
+		///when the selected option chagnes, udpat its direct children category if there are any
+		$(".catSel").live("change", function(){
+			///get the category level
+			var idStr = $(this).attr('id');
+			var selLevel = parseInt(idStr.split('_')[1]);
+			///pull out parent levels and try to add a children selection if not exist yet
+			var l = 0;
+			///current selected lists
+			var curSelList = null;
+			for(l = 0; l <= selLevel; l++)
+			{
+				var tmpSelId = "#sub_" + l;
+				var tmpSelVal = $(tmpSelId).val();
+				if( l == 0)
+				{
+					curSelList = categoryArray[tmpSelVal].children;
+				}
+				else{
+					curSelList = curSelList[tmpSelVal].children;
+				}
+			}
+			var rmStart = selLevel + 1;
+			if(curSelList != undefined || curSelList.length > 0)
+			{
+				///check the existence of child selection
+				var childLevel = selLevel + 1;
+				var childId = "sub_" + childLevel;
+				var childSelInput = $("#" + childId);
+				if(childSelInput.length >0  )
+				{
+					///remove all existing options
+					childSelInput.find('option').remove();				
+				}
+				else{
+					var addedSel = $("<select>").attr('id',childId).attr('class','catSel');
+					childSelInput = addedSel;
+					addedSel.appendTo($("#treeContainer"));
+				}
+				///add curSelList to childSelInput
+				$.each(curSelList, function (key, val)
+					{
+						childSelInput.append($('<option>').text(val.name).attr('value', key));
+					}
+				);
+			}
+			rmStart += 1;
+			///remove the compoents afterwards
+			for(;; rmStart++)
+			{
+				var tmpSelInput = $("#sub_" + rmStart);
+				if(tmpSelInput.length > 0)
+				{
+					tmpSelInput.remove();
+					continue;
+				}
+				break;
+			}		
+		}
+		);
+		
     </script>
 	</div>
 	<div class="modal-footer">
