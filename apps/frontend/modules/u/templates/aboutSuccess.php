@@ -7,10 +7,10 @@
 			<h2>用户</h2>
 			<h4>我要买东西</h4>
 			<ul>
-				<li>时尚</li>
-				<li>电子</li>
-				<li>图书</li>
-				<li>百货</li>
+				<li><img src="/image/bag.jpg">时尚</li>
+				<li><img src="/image/iphone.jpg">电子</li>
+				<li><img src="/image/book.jpg">图书</li>
+				<li><img src="/image/fruit.jpg">美食</li>
 			</ul>
 		</div>
 
@@ -18,10 +18,10 @@
 			<h2>核桃</h2>
 			<h4>让购物更简单</h4>
 			<ul>
-				<li>文本搜索</li>
-				<li>图片搜索</li>
-				<li>地理位置搜索</li>
-				<li>社会化推荐</li>
+				<li>文本</li>
+				<li>图片</li>
+				<li>位置</li>
+				<li>推荐</li>
 			</ul>
 		</div>
 
