@@ -1,16 +1,21 @@
 <div id="myModal" class="modal hide fade in">
 	<div class="modal-header">
-		<a class="close" data-dismiss="modal">×</a>
-		<h3 id="testh3">请选择图片类别</h3>
+		<a class="close" href="<?php echo url_for('@homepage')?>">×</a>
+		<h3>请选择图片类别</h3>
 	</div>
 	<div class="modal-body">
-		<img src="<?php echo '/uploads/' . $imagePath?>" width="200"
-			height="200">
-		<hr>
-		<div id="treeContainer" class="control-group">
-			<select id="sub_0" class="catSel"></select>
+		<div class="row">
+			<div class="span3">
+				<img src="<?php echo '/uploads/' . $imagePath?>">
+			</div>
+			<div class="span2">
+				<div id="treeContainer" class="control-group">
+					<select id="sub_0" class="catSel">
+						<option>请选择类别</option>
+					</select>
+				</div>
+			</div>
 		</div>
-
 		<script type="text/javascript">
 		var categoryArray=new Array();
 		$.getJSON('/js/category.json', function(data) {
@@ -78,18 +83,14 @@
 			}		
 		}
 		);
-		
+		$(document).ready(function()
+		{
+			$('#myModal').modal('show');
+		});		
     </script>
 	</div>
 	<div class="modal-footer">
-		<a href="#" class="btn" data-dismiss="modal">取 消</a> <a href="#"
-			class="btn btn-primary">查 询</a>
+		<a href="<?php echo url_for('@homepage')?>" class="btn">取 消</a> <a
+			href="#" class="btn btn-inverse">查 询</a>
 	</div>
 </div>
-<script type="text/javascript">
-$(document).ready(function()
-{
-	$('#myModal').modal('show');
-});
-
-</script>

@@ -1,7 +1,5 @@
 <?php
 $GLOBALS ['THRIFT_ROOT'] = sfConfig::get ( 'sf_lib_dir' ) . '/thrift/';
-
-// Load up all the thrift stuff
 require_once $GLOBALS ['THRIFT_ROOT'] . 'Thrift.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'protocol/TBinaryProtocol.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'transport/TSocket.php';

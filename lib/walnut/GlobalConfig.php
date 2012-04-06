@@ -11,7 +11,7 @@ class GlobalConfig {
 	}
 	public static $IMAGE_TABLE = "image_index";
 	public static $IMAGE_HASH_COLUMN = "d:hash";
-	
+
 }
 
 ?>
