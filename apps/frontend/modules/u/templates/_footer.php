@@ -3,16 +3,15 @@
 		<li>
 			<h4>帮助</h4>
 			<ul>
-				<li><a href="">新手指南</a></li>
-				<li><a href="">常见问题</a></li>
-				<li><a href="">用户协议</a></li>
+				<li><a href="<?php echo url_for('u/guidance')?>">新手指南</a></li>
+				<li><a href="<?php echo url_for('u/faq')?>">常见问题</a></li>
 			</ul>
 		</li>
 		<li>
 			<h4>链接</h4>
 			<ul>
 				<li><a href="<?php echo url_for('u/about')?>">关于核桃</a></li>
-				<li><a href="">核桃博客</a></li>
+				<li><a href="http://walnutvision.net:10088">核桃博客</a></li>
 				<li><a href="<?php echo url_for('u/join')?>">招贤纳士</a></li>
 			</ul>
 		</li>

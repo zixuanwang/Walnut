@@ -1,21 +1,19 @@
 <?php
-$GLOBALS ['THRIFT_ROOT'] = sfConfig::get ( 'sf_lib_dir' ) . '/thrift/';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'Thrift.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'protocol/TBinaryProtocol.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'transport/TSocket.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'transport/TBufferedTransport.php';
 require_once $GLOBALS ['THRIFT_ROOT'] . 'transport/TFramedTransport.php';
-require_once $GLOBALS ['THRIFT_ROOT'] . 'packages/ImageDaemon/ImageDaemon.php';
-
-class ImageDaemonAdapter {
+require_once $GLOBALS ['THRIFT_ROOT'] . 'packages/ANNTreeDaemon/ANNTreeDaemon.php';
+class ANNTreeDaemonAdapter {
 	
 	function __construct() {
 		try {
-			$this->mSocket = new TSocket ( self::IMAGE_DAEMON_SERVER_NAME, self::IMAGE_DAEMON_SERVER_PORT );
-			$this->mSocket->setRecvTimeout ( 10000 );
+			$this->mSocket = new TSocket ( self::ANNTREE_DAEMON_SERVER_NAME, self::ANNTREE_DAEMON_SERVER_PORT );
+			$this->mSocket->setRecvTimeout ( 20000 );
 			$this->mTransport = new TFramedTransport ( $this->mSocket );
 			$this->mProtocol = new TBinaryProtocol ( $this->mTransport );
-			$this->mClient = new ImageDaemonClient ( $this->mProtocol );
+			$this->mClient = new ANNTreeDaemonClient ( $this->mProtocol );
 			$this->mTransport->open ();
 		} catch ( TException $tx ) {
 		}
@@ -25,9 +23,9 @@ class ImageDaemonAdapter {
 		$this->mTransport->close ();
 	}
 	
-	public function cropImage($imagePath, $cropImagePath, $width, $height) {
+	public function query($imagePath, $treeIndex, $featureType, $k) {
 		try {
-			$this->mClient->cropImage ( $imagePath, $cropImagePath, $width, $height );
+			return $this->mClient->query ( $imagePath, $treeIndex, $featureType, $k );
 		} catch ( TException $tx ) {
 		}
 	}
@@ -36,8 +34,8 @@ class ImageDaemonAdapter {
 	private $mTransport;
 	private $mProtocol;
 	private $mClient;
-	const IMAGE_DAEMON_SERVER_NAME = 'localhost';
-	const IMAGE_DAEMON_SERVER_PORT = '9992';
+	const ANNTREE_DAEMON_SERVER_NAME = 'node1';
+	const ANNTREE_DAEMON_SERVER_PORT = '9999';
 }
 
 ?>

@@ -44,22 +44,5 @@
 			</ul>
 		</div>
 	</div>
-	<hr>
-	<div class='columns double'>
-		<div class='column first'>
-			<h3>About Us</h3>
-			<p>We're a small team based in Bay area dedicated to
-				provide open search platform for e-commerce in China. We believe the Internet is
-				an incredible force for good and should be harnessed to enrich
-				peoples lives.</p>
-		</div>
-
-		<div class='column last'>
-			<h3>Careers</h3>
-			<p>
-			
-			</p>
-		</div>
-	</div>
 </div>
 <?php include_partial ( 'footer' )?>

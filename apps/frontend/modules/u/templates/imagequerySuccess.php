@@ -3,13 +3,12 @@
 	<?php include_partial ( 'search' )?>
 	<div class="columns single sidebar">
 		<div class="column dark last">
-			<h3>商品分类</h3>
+			<h3><a href="<?php echo url_for('@homepage')?>">返回首页</a></h3>
 			<ul id="trending-tags">
 			</ul>
 		</div>
 	</div>
 	<div id="right-content">
-
 		<ul id="product-list">
 					<?php
 					$i = 0;

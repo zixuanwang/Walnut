@@ -3,6 +3,7 @@ require_once sfConfig::get ( 'sf_lib_dir' ) . '/SolrPhpClient/Apache/Solr/Servic
 require_once sfConfig::get ( 'sf_lib_dir' ) . '/walnut/HbaseAdapter.php';
 require_once sfConfig::get ( 'sf_lib_dir' ) . '/walnut/GlobalConfig.php';
 require_once sfConfig::get ( 'sf_lib_dir' ) . '/walnut/ImageDaemonAdapter.php';
+require_once sfConfig::get ( 'sf_lib_dir' ) . '/walnut/ANNTreeDaemonAdapter.php';
 
 class uActions extends sfActions {
 	const SOLR_SERVER_NAME = 'localhost';
@@ -44,20 +45,105 @@ class uActions extends sfActions {
 	
 	}
 	
+	public function executeError(sfWebRequest $request) {
+	
+	}
+	
+	public function executeGuidance(sfWebRequest $request) {
+	
+	}
+	
+	public function executeFaq(sfWebRequest $request) {
+	
+	}
+	
+	public function getCategoryName($indexName) {
+		$string = file_get_contents ( '/export/sfproject/walnut/web/js/category.json' );
+		$json = json_decode ( $string, true );
+		$indexArray = explode ( '|', $indexName );
+		if (count ( $indexArray ) > 0) {
+			$categoryName = $json [$indexArray [0]] [name];
+			$json = $json [$indexArray [0]] [children];
+			for($i = 1; $i < count ( $indexArray ); ++ $i) {
+				$categoryName .= '|' . $json [$indexArray [$i]] [name];
+				$json = $json [$indexArray [$i]] [children];
+			}
+		}
+		return $categoryName;
+	}
+	
+	public function executeQuery(sfWebRequest $request) {
+		if ($request->isMethod ( 'post' )) {
+			// get category name
+			$imagePathPrefix = '/export/sfproject/walnut/web/uploads/';
+			$categoryName = $request->getParameter ( 'sub_0' );
+			for($i = 1; $i < 4; ++ $i) {
+				if ($request->hasParameter ( 'sub_' . $i )) {
+					$categoryName .= '|' . $request->getParameter ( 'sub_' . $i );
+				}
+			}
+			$categoryName = $this->getCategoryName ( $categoryName );
+			$imagePath = $imagePathPrefix . $request->getParameter ( 'path' );
+			$hbaseAdapter = new HbaseAdapter ();
+			$colorTreeIndex = unpack ( 'i', $hbaseAdapter->loadCell ( 'category_index', $categoryName, 'd:color' ) );
+			$colorTreeIndex = $colorTreeIndex [1];
+			$shapeTreeIndex = unpack ( 'i', $hbaseAdapter->loadCell ( 'category_index', $categoryName, 'd:shape' ) );
+			$shapeTreeIndex = $shapeTreeIndex [1];
+			$surfTreeIndex = unpack ( 'i', $hbaseAdapter->loadCell ( 'category_index', $categoryName, 'd:surf' ) );
+			$surfTreeIndex = $surfTreeIndex [1];
+			if ($colorTreeIndex != null) {
+				$ann = new ANNTreeDaemonAdapter ();
+				$colorResults = $ann->query ( $imagePath, $colorTreeIndex, 'color', 8 );
+			}
+			if ($shapeTreeIndex != null) {
+				$ann = new ANNTreeDaemonAdapter ();
+				$shapeResults = $ann->query ( $imagePath, $shapeTreeIndex, 'shape', 8 );
+			}
+			if ($surfTreeIndex != null) {
+				$ann = new ANNTreeDaemonAdapter ();
+				$surfResults = $ann->query ( $imagePath, $surfTreeIndex, 'surf', 8 );
+			}
+			$this->colorProductArray = array ();
+			$this->shapeProductArray = array ();
+			$this->surfProductArray = array ();
+			foreach ( $colorResults as $result ) {
+				$products = $this->getProductInfo ( $result );
+				foreach ( $products as $product ) {
+					$this->colorProductArray [] = $product;
+				}
+			}
+			foreach ( $shapeResults as $result ) {
+				$products = $this->getProductInfo ( $result );
+				foreach ( $products as $product ) {
+					$this->shapeProductArray [] = $product;
+				}
+			}
+			foreach ( $surfResults as $result ) {
+				$products = $this->getProductInfo ( $result );
+				foreach ( $products as $product ) {
+					$this->surfProductArray [] = $product;
+				}
+			}
+		}
+	}
+	
 	public function executeSelectimage(sfWebRequest $request) {
 		if ($request->isMethod ( 'post' )) {
 			if ($request->hasParameter ( 'inputlink' )) {
 				$linkurl = $request->getParameter ( 'inputlink' );
 				$pathParts = pathinfo ( $linkurl );
-				if ($pathParts ['extension'] == 'jpg') {
+				$pathExt = strtolower ( $pathParts ['extension'] );
+				if ($pathExt == 'jpg' || $pathExt == 'jpeg') {
 					$tmpPath = '/tmp/' . rand () . time () . '.jpg';
 					$this->downloadFile ( $linkurl, $tmpPath );
 					$filename = md5_file ( $tmpPath );
 					$filepath = sfConfig::get ( 'sf_upload_dir' ) . '/' . $filename . '.jpg';
 					rename ( $tmpPath, $filepath );
+				} else {
+					$this->getUser ()->setAttribute ( 'errorMessage', '请使用jpeg图片：）' );
+					$this->redirect ( 'u/error' );
 				}
 			} else {
-				// TODO: check extension
 				$file = $request->getFiles ( 'inputfile' );
 				$filepath = $this->saveUploadedImage ( $file );
 			}
@@ -81,7 +167,14 @@ class uActions extends sfActions {
 		// The image path is returned.
 		$type = $file ['type'];
 		if (strstr ( $type, '/', true ) != 'image') {
-			return null;
+			$this->getUser ()->setAttribute ( 'errorMessage', '请使用jpeg图片：）' );
+			$this->redirect ( 'u/error' );
+		}
+		$pathParts = pathinfo ( $file ['name'] );
+		$pathExt = strtolower ( $pathParts ['extension'] );
+		if ($pathExt != 'jpg' && $pathExt != 'jpeg') {
+			$this->getUser ()->setAttribute ( 'errorMessage', '请使用jpeg图片：）' );
+			$this->redirect ( 'u/error' );
 		}
 		return $this->saveImage ( $file ['tmp_name'] );
 	}
@@ -154,6 +247,10 @@ class uActions extends sfActions {
 		return pack ( 'll', $v & 0xFFFFFFFF, $v >> 32 );
 	}
 	
+	public function unpackLong($v) {
+		return unpack ( 'll', $v );
+	}
+	
 	public function executeImagequery(sfWebRequest $request) {
 		$this->page = $request->getParameter ( 'page', 0 );
 		$this->imageKey = $request->getParameter ( 'imagekey', - 1 );
@@ -215,6 +312,7 @@ class uActions extends sfActions {
 			$categoryParameters ['facet.field'] = array ('category' );
 			$categoryParameters ['stats'] = 'true';
 			$categoryParameters ['stats.field'] = 'price';
+			// $categoryParameters ['sort'] = 'price asc';
 			
 			if ($request->hasParameter ( 'prefix' )) {
 				// has category constraint
@@ -238,26 +336,6 @@ class uActions extends sfActions {
 				}
 			}
 		} catch ( Exception $e ) {
-		}
-	}
-	
-	public function executeQuery(sfWebRequest $request) {
-		if ($request->isMethod ( 'post' )) {
-			$file = $request->getFiles ( 'fileInput' );
-			$imagePath = $this->saveUploadedImage ( $file );
-			$time_start = microtime ( true );
-			$hashArray = $this->query ( $imagePath );
-			$time_end = microtime ( true );
-			$this->time = $time_end - $time_start;
-			$this->productArray = array ();
-			$i = 0;
-			foreach ( $hashArray as $hash ) {
-				$itemRowKey = $this->loadCell ( 'image', $hash, 'd:ii_0' );
-				$this->productArray [$i] = array ();
-				$this->productArray [$i] ['image'] = $hash . '_160.jpg';
-				$this->productArray [$i] ['item'] = $this->getItemInfo ( $itemRowKey );
-				$i ++;
-			}
 		}
 	}
 	
