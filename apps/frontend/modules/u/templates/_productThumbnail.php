@@ -19,11 +19,14 @@ if($product->merchant=='vc'){
 if($product->merchant=='yt'){
 	$product->merchant='银泰百货';
 }
+if($product->merchant=='tts'){
+	$product->merchant='淘淘搜';
+}
 ?>
 <div class="show-image">
 	<a href="<?php echo $product->url?>"
 		title="<?php echo $product->name?>"> <img
-		src="/i/<?php echo $product->imagehash . '_160.jpg'?>" width="160"
+		src="/c/<?php echo $product->imagehash . '.jpg'?>" width="160"
 		height="160"></a>
 	<div class="btn-group find-similar"
 		style="position: absolute; top: 2px; right: 12px;">

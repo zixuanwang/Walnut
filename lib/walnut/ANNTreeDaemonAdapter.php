@@ -10,7 +10,7 @@ class ANNTreeDaemonAdapter {
 	function __construct() {
 		try {
 			$this->mSocket = new TSocket ( self::ANNTREE_DAEMON_SERVER_NAME, self::ANNTREE_DAEMON_SERVER_PORT );
-			$this->mSocket->setRecvTimeout ( 20000 );
+			$this->mSocket->setRecvTimeout ( 60000 );
 			$this->mTransport = new TFramedTransport ( $this->mSocket );
 			$this->mProtocol = new TBinaryProtocol ( $this->mTransport );
 			$this->mClient = new ANNTreeDaemonClient ( $this->mProtocol );

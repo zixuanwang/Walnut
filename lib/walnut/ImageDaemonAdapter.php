@@ -25,9 +25,9 @@ class ImageDaemonAdapter {
 		$this->mTransport->close ();
 	}
 	
-	public function cropImage($imagePath, $cropImagePath, $width, $height) {
+	public function cropUploadImage($imagePath, $cropImagePath, $width, $height) {
 		try {
-			$this->mClient->cropImage ( $imagePath, $cropImagePath, $width, $height );
+			$this->mClient->cropUploadImage ( $imagePath, $cropImagePath, $width, $height );
 		} catch ( TException $tx ) {
 		}
 	}

@@ -103,27 +103,31 @@ class uActions extends sfActions {
 				$ann = new ANNTreeDaemonAdapter ();
 				$surfResults = $ann->query ( $imagePath, $surfTreeIndex, 'surf', 8 );
 			}
-			$this->colorProductArray = array ();
-			$this->shapeProductArray = array ();
-			$this->surfProductArray = array ();
-			foreach ( $colorResults as $result ) {
-				$products = $this->getProductInfo ( $result );
-				foreach ( $products as $product ) {
-					$this->colorProductArray [] = $product;
-				}
-			}
-			foreach ( $shapeResults as $result ) {
-				$products = $this->getProductInfo ( $result );
-				foreach ( $products as $product ) {
-					$this->shapeProductArray [] = $product;
-				}
-			}
-			foreach ( $surfResults as $result ) {
-				$products = $this->getProductInfo ( $result );
-				foreach ( $products as $product ) {
-					$this->surfProductArray [] = $product;
-				}
-			}
+			// $this->colorProductArray = array ();
+			// $this->shapeProductArray = array ();
+			// $this->surfProductArray = array ();
+			// foreach ( $colorResults as $result ) {
+			// $products = $this->getProductInfo ( $result );
+			// foreach ( $products as $product ) {
+			// $this->colorProductArray [] = $product;
+			// }
+			// }
+			// foreach ( $shapeResults as $result ) {
+			// $products = $this->getProductInfo ( $result );
+			// foreach ( $products as $product ) {
+			// $this->shapeProductArray [] = $product;
+			// }
+			// }
+			// foreach ( $surfResults as $result ) {
+			// $products = $this->getProductInfo ( $result );
+			// foreach ( $products as $product ) {
+			// $this->surfProductArray [] = $product;
+			// }
+			// }
+			$this->colorProductArray = $this->filterProduct ( $colorResults, $request );
+			$this->shapeProductArray = $this->filterProduct ( $shapeResults, $request );
+			$this->surfProductArray = $this->filterProduct ( $surfResults, $request );
+		
 		}
 	}
 	
@@ -151,7 +155,7 @@ class uActions extends sfActions {
 			$dirName = dirname ( $filepath );
 			$this->imagePath = $name . '_200.jpg';
 			$client = new ImageDaemonAdapter ();
-			$client->cropImage ( $filepath, $dirName . '/' . $this->imagePath, 200, 0 );
+			$client->cropUploadImage ( $filepath, $dirName . '/' . $this->imagePath, 200, 0 );
 		}
 	}
 	
@@ -251,6 +255,126 @@ class uActions extends sfActions {
 		return unpack ( 'll', $v );
 	}
 	
+	public function getProductWithImageId($solrResults, $id) {
+		$productArray = array ();
+		foreach ( $solrResults->response->docs as $product ) {
+			$keySize = count ( $product->imagekey );
+			if ($keySize > 1) {
+				for($i = 0; $i < $keySize; ++ $i) {
+					if ($product->imagekey [$i] == $id) {
+						$p = clone $product;
+						$p->imagekey = $product->imagekey [$i];
+						$p->imagehash = $product->imagehash [$i];
+						$productArray [] = $p;
+					}
+				}
+			}
+			if ($keySize == 1 && $product->imagekey == $id) {
+				$p = clone $product;
+				$productArray [] = $p;
+			}
+		}
+		return $productArray;
+	}
+	
+	public function getProduct($neighborIdArray, $solrResults) {
+		// print_r($neighborIdArray);
+		// print_r($solrResults->response->docs);
+		$productArray = array ();
+		foreach ( $neighborIdArray as $neighborId ) {
+			$product = $this->getProductWithImageId ( $solrResults, $neighborId );
+			foreach ( $product as $p ) {
+				$productArray [] = $p;
+			}
+		}
+		return $productArray;
+	}
+	
+	// public function getProductArray($neighborIdArray, $solrResults) {
+	// $productArray = array ();
+	// foreach ( $solrResults->response->docs as $product ) {
+	// $keySize = count ( $product->imagekey );
+	// if ($keySize > 1) {
+	// for($i = 0; $i < $keySize; ++ $i) {
+	// if (in_array ( $product->imagekey [$i], $neighborIdArray )) {
+	// $product->imagekey = $product->imagekey [$i];
+	// $product->imagehash = $product->imagehash [$i];
+	// }
+	// }
+	// }
+	// $productArray [] = $product;
+	// }
+	// return $productArray;
+	// }
+	
+	public function buildFacet($solrResults) {
+		// print_r ( $solrResults );
+		$this->priceFacet = array ();
+		foreach ( $solrResults->facet_counts->facet_ranges->price->counts as $key => $value ) {
+			$this->priceFacet [$key] = $value;
+		}
+		$this->priceFacet [500] = $solrResults->facet_counts->facet_ranges->price->after;
+		$brandFacet = $solrResults->facet_counts->facet_fields->bra;
+		$this->brandFacet = array ();
+		foreach ( $brandFacet as $key => $value ) {
+			if ($value == 0) {
+				break;
+			}
+			$this->brandFacet [$key] = $value;
+		}
+	}
+	
+	public function filterProduct($neighborIdArray, $request) {
+		if (count ( $neighborIdArray ) == 0) {
+			return;
+		}
+		$solr = new Apache_Solr_Service ( self::SOLR_SERVER_NAME, self::SOLR_SERVER_PORT, self::SOLR_ROOT_DIR );
+		$queryString = 'imagekey:' . $neighborIdArray [0] . '^1.0';
+		$neighborCount = 1;
+		foreach ( $neighborIdArray as $imageKey ) {
+			$neighborCount ++;
+			$queryString .= ' OR ' . 'imagekey:' . $imageKey . '^' . 1 / $neighborCount;
+		}
+		if ($request->hasParameter ( 'sortprice' )) {
+			$sortPrice = $request->getParameter ( 'sortprice' );
+		}
+		if ($request->hasParameter ( 'pricerange' )) {
+			$priceRange = $request->getParameter ( 'pricerange' );
+		}
+		if ($request->hasParameter ( 'brand' )) {
+			$brand = $request->getParameter ( 'brand' );
+		}
+		if (isset ( $sortPrice )) {
+			$parameters ['sort'] = 'price asc';
+		}
+		if (isset ( $brand )) {
+			$parameters ['fq'] = 'bra:' . '"' . $brand . '"';
+		}
+		if (isset ( $priceRange )) {
+			$endPrice = $priceRange + 100;
+			$parameters ['fq'] = 'price:' . '[' . $priceRange . ' TO ' . $endPrice . ']';
+			if ($priceRange == 500) {
+				$parameters ['fq'] = 'price:[500 TO *]';
+			}
+		}
+		$parameters ['facet'] = 'true';
+		$parameters ['facet.range'] = 'price';
+		$parameters ['facet.field'] = 'bra';
+		$parameters ['facet.range.start'] = 0;
+		$parameters ['facet.range.end'] = 500;
+		$parameters ['facet.range.gap'] = 100;
+		$parameters ['facet.range.other'] = 'after';
+		$results = $solr->search ( $queryString, 0, 100, $parameters );
+// 		print_r ( $results );
+		// echo count($results->response->docs);
+		$this->buildFacet ( $results );
+		if (isset ( $sortPrice )) {
+			return $this->getProduct ( $neighborIdArray, $results );
+		} else {
+			return $this->getProduct ( $neighborIdArray, $results );
+		}
+	}
+	
 	public function executeImagequery(sfWebRequest $request) {
 		$this->page = $request->getParameter ( 'page', 0 );
 		$this->imageKey = $request->getParameter ( 'imagekey', - 1 );
@@ -268,14 +392,30 @@ class uActions extends sfActions {
 			// get surf neighbors
 			$neighborIdArray = explode ( '|', $hbaseAdapter->loadCell ( 'image_index', $this->packLong ( $this->imageKey ), 'd:surf' . $this->page ) );
 		}
-		$this->productArray = array ();
-		foreach ( $neighborIdArray as $neighborId ) {
-			$products = $this->getProductInfo ( $neighborId );
-			foreach ( $products as $product ) {
-				$this->productArray [] = $product;
-			}
-		}
-		
+		// print_r ( $neighborIdArray );
+		// $this->productArray = array ();
+		// foreach ( $neighborIdArray as $neighborId ) {
+		// $products = $this->getProductInfo ( $neighborId );
+		// foreach ( $products as $product ) {
+		// // find corresponding imagehash
+		// $keySize = count ( $product->imagekey );
+		// if ($keySize > 1) {
+		// for($i = 0; $i < $keySize; ++ $i) {
+		// if ($product->imagekey [$i] == $neighborId) {
+		// $product->imagekey = $product->imagekey [$i];
+		// $product->imagehash = $product->imagehash [$i];
+		// break;
+		// }
+		// }
+		// }
+		// $this->productArray [] = $product;
+		// }
+		// }
+		// // save $neighborIdArray in session
+		// $this->getUser ()->setAttribute ( 'neighborIdArray', $neighborIdArray
+		// );
+		// $this->imageKeyFacet ( $neighborIdArray );
+		$this->productArray = $this->filterProduct ( $neighborIdArray, $request );
 		$this->pageArray = array ();
 		for($i = - 3; $i <= 3; ++ $i) {
 			$p = $this->page + $i;
@@ -310,8 +450,6 @@ class uActions extends sfActions {
 			$categoryParameters = array ();
 			$categoryParameters ['facet'] = 'true';
 			$categoryParameters ['facet.field'] = array ('category' );
-			$categoryParameters ['stats'] = 'true';
-			$categoryParameters ['stats.field'] = 'price';
 			// $categoryParameters ['sort'] = 'price asc';
 			
 			if ($request->hasParameter ( 'prefix' )) {
@@ -347,7 +485,7 @@ class uActions extends sfActions {
 	public function query($imagePath) {
 		try {
 			$socket = new TSocket ( 'node2', '9992' );
-			$socket->setRecvTimeout ( 20000 );
+			$socket->setRecvTimeout ( 60000 );
 			$transport = new TFramedTransport ( $socket );
 			$protocol = new TBinaryProtocol ( $transport );
 			$client = new ImageDaemonClient ( $protocol );
