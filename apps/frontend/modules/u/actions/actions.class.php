@@ -290,6 +290,28 @@ class uActions extends sfActions {
 		return $productArray;
 	}
 	
+	public function getProductWithoutSorting($neighborIdArray, $solrResults) {
+		$productArray = array ();
+		foreach ( $solrResults->response->docs as $product ) {
+			$keySize = count ( $product->imagekey );
+			if ($keySize > 1) {
+				for($i = 0; $i < $keySize; ++ $i) {
+					if (in_array ( $product->imagekey [$i], $neighborIdArray )) {
+						$p = clone $product;
+						$p->imagekey = $product->imagekey [$i];
+						$p->imagehash = $product->imagehash [$i];
+						$productArray [] = $p;
+					}
+				}
+			}
+			if ($keySize == 1 && in_array ( $product->imagekey, $neighborIdArray )) {
+				$p = clone $product;
+				$productArray [] = $p;
+			}
+		}
+		return $productArray;
+	}
+	
 	// public function getProductArray($neighborIdArray, $solrResults) {
 	// $productArray = array ();
 	// foreach ( $solrResults->response->docs as $product ) {
@@ -365,11 +387,11 @@ class uActions extends sfActions {
 		$parameters ['facet.range.gap'] = 100;
 		$parameters ['facet.range.other'] = 'after';
 		$results = $solr->search ( $queryString, 0, 100, $parameters );
-// 		print_r ( $results );
+		// print_r ( $results );
 		// echo count($results->response->docs);
 		$this->buildFacet ( $results );
 		if (isset ( $sortPrice )) {
-			return $this->getProduct ( $neighborIdArray, $results );
+			return $this->getProductWithoutSorting ( $neighborIdArray, $results );
 		} else {
 			return $this->getProduct ( $neighborIdArray, $results );
 		}

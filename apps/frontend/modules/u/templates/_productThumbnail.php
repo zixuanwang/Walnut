@@ -7,20 +7,20 @@ if (count ( $product->imagehash ) > 1 && count ( $product->imagekey ) > 1) {
 if (substr ( $product->url, 0, strlen ( 'http://' ) ) != 'http://') {
 	$product->url = 'http://' . $product->url;
 }
-if($product->merchant=='amz'){
-	$product->merchant='亚马逊';
+if ($product->merchant == 'amz') {
+	$product->merchant = '亚马逊';
 }
-if($product->merchant=='dd'){
-	$product->merchant='当当网';
+if ($product->merchant == 'dd') {
+	$product->merchant = '当当网';
 }
-if($product->merchant=='vc'){
-	$product->merchant='凡客诚品';
+if ($product->merchant == 'vc') {
+	$product->merchant = '凡客诚品';
 }
-if($product->merchant=='yt'){
-	$product->merchant='银泰百货';
+if ($product->merchant == 'yt') {
+	$product->merchant = '银泰百货';
 }
-if($product->merchant=='tts'){
-	$product->merchant='淘淘搜';
+if ($product->merchant == 'tts') {
+	$product->merchant = '淘淘搜';
 }
 ?>
 <div class="show-image">
@@ -30,18 +30,13 @@ if($product->merchant=='tts'){
 		height="160"></a>
 	<div class="btn-group find-similar"
 		style="position: absolute; top: 2px; right: 12px;">
-		<button class="btn">
-			<a
-				href="<?php echo '/u/imagequery?t=color&imagekey=' . $product->imagekey ?>">颜色</a>
-		</button>
-		<button class="btn">
-			<i class="icon-star"></i><a
-				href="<?php echo '/u/imagequery?t=shape&imagekey=' . $product->imagekey ?>">形状</a>
-		</button>
-		<button class="btn">
-			<a
-				href="<?php echo '/u/imagequery?t=pattern&imagekey=' . $product->imagekey ?>">图案</a>
-		</button>
+		<a
+			href="<?php echo '/u/imagequery?t=color&imagekey=' . $product->imagekey ?>"><button
+				class="btn">颜色</button></a> <a
+			href="<?php echo '/u/imagequery?t=shape&imagekey=' . $product->imagekey ?>"><button
+				class="btn">形状</button></a> <a
+			href="<?php echo '/u/imagequery?t=pattern&imagekey=' . $product->imagekey ?>"><button
+				class="btn">图案</button></a>
 	</div>
 </div>
 <p class="title"><?php echo $product->name?>
